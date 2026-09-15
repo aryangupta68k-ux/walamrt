@@ -484,11 +484,19 @@
     .result-actions { display: flex; flex-direction: column; gap: 10px; }
     .result-actions .pill { width: 100%; padding: 14px; font-size: 16px; }
 
-    /* ───────────── LIVE SOCIAL PROOF TOAST ───────────── */
+     /* ───────────── LIVE SOCIAL PROOF TOAST ───────────── */
+    @keyframes toastIn {
+      from { opacity: 0; transform: translateX(-50%) translateY(-24px) scale(0.95); }
+      to   { opacity: 1; transform: translateX(-50%) translateY(0)     scale(1);    }
+    }
+    @keyframes toastOut {
+      from { opacity: 1; transform: translateX(-50%) translateY(0)     scale(1);    }
+      to   { opacity: 0; transform: translateX(-50%) translateY(-16px) scale(0.96); }
+    }
     .social-proof-toast {
       position: fixed;
       left: 50%;
-      top: -100px;
+      top: calc(env(safe-area-inset-top, 0px) + 16px);
       z-index: 9999;
       display: flex;
       align-items: center;
@@ -510,14 +518,14 @@
       overflow-wrap: break-word;
       pointer-events: none;
       opacity: 0;
-      transform: translateX(-50%);
-      transition:
-        top .35s cubic-bezier(.22, 1, .36, 1),
-        opacity .2s ease;
+      transform: translateX(-50%) translateY(-24px) scale(0.95);
+      will-change: transform, opacity;
     }
-    .social-proof-toast.visible {
-      top: calc(env(safe-area-inset-top, 0px) + 16px);
-      opacity: 1;
+    .social-proof-toast.entering {
+      animation: toastIn 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+    }
+    .social-proof-toast.leaving {
+      animation: toastOut 0.4s cubic-bezier(0.4, 0, 0.6, 1) forwards;
     }
     .toast-text {
       display: block;
@@ -535,7 +543,7 @@
         font-size: 12.5px;
         border-radius: 22px;
       }
-      .social-proof-toast.visible {
+      .social-proof-toast {
         top: calc(env(safe-area-inset-top, 0px) + 12px);
       }
     }
@@ -835,11 +843,16 @@
 
       function showToast() {
         setToastMessage(getRandomMessage());
-        toast.classList.add('visible');
+        toast.classList.remove('leaving');
+        toast.classList.add('entering');
 
         setTimeout(function () {
-          toast.classList.remove('visible');
-          setTimeout(showToast, getRandomDelay());
+          toast.classList.remove('entering');
+          toast.classList.add('leaving');
+          setTimeout(function () {
+            toast.classList.remove('leaving');
+            setTimeout(showToast, getRandomDelay());
+          }, 420); /* match toastOut duration */
         }, visibleMs);
       }
 
